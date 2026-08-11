@@ -1,7 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 
-// The deployed Render API — never localhost in production builds.
-export const API_BASE_URL = "https://fiti-fy.onrender.com/api";
+const configuredApiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || process.env.VITE_API_BASE_URL;
+export const API_BASE_URL = (configuredApiBaseUrl || "https://workout-ced4.onrender.com/api").replace(/\/$/, "");
 
 const TOKEN_KEY = "fitify_session_token";
 
