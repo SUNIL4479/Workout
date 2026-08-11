@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #050505;
+    color: #ffffff;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+}
+
+/* Custom Lime glow utilities */
+.text-lime-accent {
+  color: #c6ff00;
+}
+
+.bg-lime-accent {
+  background-color: #c6ff00;
+}
+
+.border-lime-accent {
+  border-color: #c6ff00;
+}
+
+.glow-lime {
+  box-shadow: 0 0 25px rgba(198, 255, 0, 0.25);
+}
+
+.pill-lime {
+  background: rgba(198, 255, 0, 0.1);
+  border: 1px solid #c6ff00;
+  color: #c6ff00;
+}
