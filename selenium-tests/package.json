@@ -1,0 +1,21 @@
+{
+  "name": "fitify-selenium-e2e-tests",
+  "version": "1.0.0",
+  "description": "Selenium WebDriver E2E Framework with Dynamic Route & Form Discovery",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "mocha tests/**/*.spec.js --timeout 60000 --reporter mochawesome --reporter-options reportDir=reports,reportFilename=index",
+    "scan-routes": "node utilities/routeScanner.js"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.20.0",
+    "chromedriver": "^124.0.0",
+    "geckodriver": "^4.3.0",
+    "mocha": "^10.4.0",
+    "chai": "^5.1.0",
+    "exceljs": "^4.4.0",
+    "mochawesome": "^7.1.3",
+    "winston": "^3.12.0"
+  }
+}
