@@ -1,0 +1,11 @@
+{
+  "name": "FitiFy - Home Workout Coach",
+  "description": "AI-powered 24/7 personal fitness trainer with smart workout routines, voice coaching, interactive 3D exercise demonstrations, and custom nutrition plans.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
