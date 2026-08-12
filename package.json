@@ -20,6 +20,9 @@
     "build:backend": "npm run build --workspace backend",
     "start": "npm run start --workspace backend",
     "lint": "tsc --noEmit",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "npm run test --workspace backend",
+    "test:frontend": "npm run test --workspace frontend",
     "clean": "rimraf frontend/dist backend/dist"
   },
   "devDependencies": {

@@ -1,0 +1,48 @@
+name: FitiFi Continuous Integration & Build Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    name: Build, Lint & Test Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js Environment (v24.x)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: 📦 Install Root & Workspace Dependencies
+        run: |
+          npm ci || npm install
+
+      - name: 🔍 Run TypeScript Type Checking & Linting
+        run: |
+          npm run lint
+
+      - name: 🧪 Execute Automated Unit & Integration Tests
+        run: |
+          npm test
+
+      - name: 🏗️ Build Frontend & Backend Applications
+        run: |
+          npm run build
+
+      - name: 📊 Upload Build Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fitifi-build-artifacts
+          path: |
+            frontend/dist/
+            backend/dist/
+          retention-days: 7
