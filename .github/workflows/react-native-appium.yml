@@ -27,17 +27,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 📱 Setup Android SDK & Emulator Caching
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          target: google_apis
-          arch: x86_64
-          profile: Pixel_6
-          script: |
-            npm install -g appium
-            appium driver install uiautomator2
-            cd appium-tests && npm install && npm test || true
+      - name: 📦 Install Root & Appium Dependencies
+        run: |
+          npm ci || npm install
+          cd appium-tests && npm install
+
+      - name: 🤖 Execute Smart AI Widget Discovery
+        run: |
+          cd appium-tests && npm run test:ai
+
+      - name: 🧪 Execute Appium Mobile E2E Test Suite
+        run: |
+          cd appium-tests && npm test
 
       - name: 📊 Upload Appium Test Artifacts (Excel, HTML, Logs)
         if: always()
@@ -47,5 +48,4 @@ jobs:
           path: |
             appium-tests/reports/
             appium-tests/logs/
-            appium-tests/screenshots/
           retention-days: 7
