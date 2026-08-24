@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { UserProfile, WorkoutPlan, Badge } from "../../types";
+import { BodyFocusSection } from "./BodyFocusSection";
 import {
   Flame,
   Zap,
@@ -184,6 +185,9 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Dedicated Body Focus Categories Section (Abs, Arms, Chest, Legs, Shoulders) */}
+      <BodyFocusSection onStartWorkout={onStartWorkout} />
 
       {/* AI Daily Workout To-Do List Section */}
       <div className="p-6 rounded-[24px] bg-[#111111] border border-[#222222] space-y-4">
