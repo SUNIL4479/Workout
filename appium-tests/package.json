@@ -1,0 +1,19 @@
+{
+  "name": "fitify-appium-mobile-tests",
+  "version": "1.0.0",
+  "description": "Appium 2.x React Native E2E Automation Framework with Excel & HTML Reports",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "mocha tests/**/*.spec.js --timeout 120000 --reporter mochawesome --reporter-options reportDir=reports,reportFilename=index",
+    "test:ai": "node ai-tester/smartWidgetDiscovery.js"
+  },
+  "dependencies": {
+    "webdriverio": "^8.32.0",
+    "mocha": "^10.4.0",
+    "chai": "^5.1.0",
+    "exceljs": "^4.4.0",
+    "mochawesome": "^7.1.3",
+    "winston": "^3.12.0"
+  }
+}
