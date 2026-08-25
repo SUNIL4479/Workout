@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
   bubble: { maxWidth: "85%", borderRadius: 16, padding: 12, marginBottom: 8 },
   userBubble: { alignSelf: "flex-end", backgroundColor: colors.accent },
-  coachBubble: { alignSelf: "flex-start", backgroundColor: colors.surface },
+  coachBubble: { alignSelf: "flex-start", backgroundColor: colors.surface2 },
   inputBar: { padding: 12, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg },
   inputWrap: { flex: 1 },
   input: {

@@ -136,11 +136,14 @@ export interface WorkoutLog {
   intensity: string;
 }
 
+export type BadgeCategory = "streak" | "milestone" | "burn" | "transform" | "lifestyle" | "rank";
+
 export interface Badge {
   id: string;
   name: string;
   description: string;
   iconName: string;
+  category: BadgeCategory;
   unlocked: boolean;
   unlockedAt?: string;
   progressPercent: number;
