@@ -61,8 +61,6 @@ export interface UserProfile {
   };
 }
 
-export type BodyFocusCategory = "Abs" | "Arms" | "Chest" | "Legs" | "Shoulders";
-
 export type AnimationType =
   | "pushup"
   | "squat"
@@ -79,7 +77,6 @@ export interface Exercise {
   id: string;
   name: string;
   targetMuscles: string;
-  bodyFocus?: BodyFocusCategory;
   durationSec?: number;
   reps?: number;
   sets?: number;
@@ -96,8 +93,7 @@ export interface WorkoutPlan {
   id: string;
   title: string;
   description: string;
-  bodyFocus?: BodyFocusCategory;
-  category: "Fat Burn" | "Muscle Sculpt" | "Core & ABS" | "Flexibility" | "Full Body" | "Strength";
+  category: "Fat Burn" | "Muscle Sculpt" | "Full Body & Core" | "Flexibility" | "Full Body" | "Strength";
   totalMinutes: number;
   estimatedCalories: number;
   difficulty: "Beginner" | "Intermediate" | "Advanced";

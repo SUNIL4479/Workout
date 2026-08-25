@@ -8,11 +8,21 @@ import { Button, Card, Chip, Field, Row, Spacer, Txt } from "../components/ui";
 import { ExerciseGif } from "../components/ExerciseGif";
 import { apiFetch } from "../api";
 import { useAuth } from "../auth/AuthContext";
+import { WorkoutService } from "../services/workoutService";
 import { colors } from "../theme";
 import { WorkoutPlan, Exercise } from "../types";
 import { MainTabParamList } from "../navigation";
 
 const VALID_ANIMATION_TYPES = ["pushup", "squat", "plank", "lunge", "jumping_jacks", "mountain_climbers", "burpees", "crunch", "stretching"];
+
+const BODY_FOCUS_OPTIONS = [
+  { key: "Full Body", label: "Full Body" },
+  { key: "Arms", label: "Arms" },
+  { key: "Chest", label: "Chest" },
+  { key: "Legs", label: "Legs" },
+  { key: "Shoulders", label: "Shoulders" },
+  { key: "Back", label: "Back" },
+];
 
 const PRESETS = [
   "Full body strength",
@@ -53,7 +63,7 @@ export default function WorkoutStudioScreen(_props: BottomTabScreenProps<MainTab
       };
     });
 
-  const generate = async (p?: string) => {
+  const generate = async (p?: string, bodyFocus?: string) => {
     const query = (p ?? prompt).trim();
     if (!query) {
       Alert.alert("Describe your workout", "Tell the AI coach what you want to train today.");
@@ -64,7 +74,7 @@ export default function WorkoutStudioScreen(_props: BottomTabScreenProps<MainTab
     try {
       const res = await apiFetch<{ success: boolean; workout: any }>("ai/generate-workout", {
         method: "POST",
-        body: JSON.stringify({ userPrompt: query, profile: user }),
+        body: JSON.stringify({ userPrompt: query, profile: user, bodyFocus }),
       });
       const w = res.workout || {};
       const workout: WorkoutPlan = {
@@ -103,6 +113,24 @@ export default function WorkoutStudioScreen(_props: BottomTabScreenProps<MainTab
         />
         <Button title="Generate Workout" onPress={() => generate()} loading={loading} />
         <Spacer h={14} />
+        <Txt dim size={12} bold style={{ textTransform: "uppercase" }}>Body Focus</Txt>
+        <Spacer h={6} />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          {BODY_FOCUS_OPTIONS.map((bf) => (
+            <Chip key={bf.key} label={bf.label} onPress={() => {
+              if (!user) return;
+              setPrompt(`${bf.key} focused workout`);
+              setLoading(true);
+              setPlan(null);
+              setTimeout(() => {
+                const w = WorkoutService.generateBodyPartWorkout(user, bf.key);
+                setPlan(w);
+                setLoading(false);
+              }, 100);
+            }} />
+          ))}
+        </View>
+        <Spacer h={14} />
         <Txt dim size={12} bold style={{ textTransform: "uppercase" }}>Quick ideas</Txt>
         <Spacer h={6} />
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
@@ -126,13 +154,13 @@ export default function WorkoutStudioScreen(_props: BottomTabScreenProps<MainTab
             <Spacer />
 
             <Txt bold size={14} style={{ color: colors.accent }}>Warm-up</Txt>
-            {plan.warmUp.map((ex) => <ExerciseRow key={ex.id} ex={ex} />)}
+            {plan.warmUp.map((ex, i) => <ExerciseRow key={`warm_${ex.id}_${i}`} ex={ex} />)}
             <Spacer />
             <Txt bold size={14} style={{ color: colors.accent }}>Main routine</Txt>
-            {plan.mainRoutine.map((ex) => <ExerciseRow key={ex.id} ex={ex} />)}
+            {plan.mainRoutine.map((ex, i) => <ExerciseRow key={`main_${ex.id}_${i}`} ex={ex} />)}
             <Spacer />
             <Txt bold size={14} style={{ color: colors.accent }}>Cool down</Txt>
-            {plan.coolDown.map((ex) => <ExerciseRow key={ex.id} ex={ex} />)}
+            {plan.coolDown.map((ex, i) => <ExerciseRow key={`cool_${ex.id}_${i}`} ex={ex} />)}
 
             <Spacer />
             <Button title="Start This Workout" onPress={() => nav.navigate("Player", { plan })} />
