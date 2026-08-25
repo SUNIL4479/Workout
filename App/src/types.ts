@@ -93,7 +93,7 @@ export interface WorkoutPlan {
   id: string;
   title: string;
   description: string;
-  category: "Fat Burn" | "Muscle Sculpt" | "Core & ABS" | "Flexibility" | "Full Body" | "Strength";
+  category: "Fat Burn" | "Muscle Sculpt" | "Full Body & Core" | "Flexibility" | "Full Body" | "Strength";
   totalMinutes: number;
   estimatedCalories: number;
   difficulty: "Beginner" | "Intermediate" | "Advanced";

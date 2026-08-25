@@ -12,12 +12,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-import { Button, Card, Field, Row, Spacer, Txt } from "../components/ui";
+import { Button, Card, Chip, Field, Row, Spacer, Txt } from "../components/ui";
 import { ExerciseGif } from "../components/ExerciseGif";
 import { useAuth } from "../auth/AuthContext";
 import { WorkoutService } from "../services/workoutService";
 import { colors } from "../theme";
+import { WorkoutPlan } from "../types";
 import { MainTabParamList } from "../navigation";
+
+const BODY_FOCUS_OPTIONS = [
+  { key: "Full Body", label: "Full Body" },
+  { key: "Arms", label: "Arms" },
+  { key: "Chest", label: "Chest" },
+  { key: "Legs", label: "Legs" },
+  { key: "Shoulders", label: "Shoulders" },
+  { key: "Back", label: "Back" },
+];
 
 function MetricCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -35,8 +45,22 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
   const nav = useNavigation<NativeStackNavigationProp<any>>();
   const [weightModal, setWeightModal] = useState(false);
   const [weightInput, setWeightInput] = useState("");
+  const [selectedBodyFocus, setSelectedBodyFocus] = useState<string | null>(null);
+  const [bodyPartWorkout, setBodyPartWorkout] = useState<WorkoutPlan | null>(null);
 
-  const plan = useMemo(() => (user ? WorkoutService.generatePersonalizedWorkout(user) : null), [user]);
+  const localPlan = useMemo(() => (user ? WorkoutService.generatePersonalizedWorkout(user) : null), [user]);
+  const plan = bodyPartWorkout || localPlan;
+
+  const handleBodyFocus = (focus: typeof BODY_FOCUS_OPTIONS[number]) => {
+    if (selectedBodyFocus === focus.key) {
+      setSelectedBodyFocus(null);
+      setBodyPartWorkout(null);
+      return;
+    }
+    setSelectedBodyFocus(focus.key);
+    if (!user) return;
+    setBodyPartWorkout(WorkoutService.generateBodyPartWorkout(user, focus.key));
+  };
 
   if (!user) return null;
 
@@ -99,10 +123,33 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
         </Row>
         <Spacer />
 
+        {/* Body Focus */}
+        <Card>
+          <Txt bold size={16}>Body Focus</Txt>
+          <Spacer h={2} />
+          <Txt dim size={12}>Select a muscle group to target</Txt>
+          <Spacer h={8} />
+          <FlatList
+            horizontal
+            data={BODY_FOCUS_OPTIONS}
+            keyExtractor={(item) => item.key}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <Chip
+                label={item.label}
+                selected={selectedBodyFocus === item.key}
+                onPress={() => handleBodyFocus(item)}
+                style={{ marginRight: 8 }}
+              />
+            )}
+          />
+        </Card>
+        <Spacer />
+
         {/* Today's AI workout */}
         <Card>
           <Row style={{ justifyContent: "space-between" }}>
-            <Txt bold size={16}>Today’s AI Workout</Txt>
+            <Txt bold size={16}>{selectedBodyFocus ? `${selectedBodyFocus} Workout` : "Today's Workout"}</Txt>
             <Txt dim size={12}>{plan?.totalMinutes} min · {plan?.estimatedCalories} cal</Txt>
           </Row>
           <Spacer h={8} />
@@ -110,24 +157,31 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
           <Spacer h={4} />
           <Txt dim size={12}>{plan?.description}</Txt>
           <Spacer />
-          <FlatList
-            horizontal
-            data={[...(plan?.warmUp || []), ...(plan?.mainRoutine || []), ...(plan?.coolDown || [])]}
-            keyExtractor={(ex) => ex.id}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <View style={styles.exercisePreview}>
-                <ExerciseGif
-                  exerciseName={item.name}
-                  animationType={item.animationType}
-                  style={styles.exerciseGif}
-                />
-                <Txt size={11} numberOfLines={1} style={{ marginTop: 4 }}>{item.name}</Txt>
-              </View>
-            )}
-          />
+            <FlatList
+              horizontal
+              data={[
+                ...(plan?.warmUp || []).map((ex) => ({ ...ex, _phase: "warm" })),
+                ...(plan?.mainRoutine || []).map((ex) => ({ ...ex, _phase: "main" })),
+                ...(plan?.coolDown || []).map((ex) => ({ ...ex, _phase: "cool" })),
+              ]}
+              keyExtractor={(ex) => `${ex._phase}_${ex.id}`}
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <View style={styles.exercisePreview}>
+                  <ExerciseGif
+                    exerciseName={item.name}
+                    animationType={item.animationType}
+                    style={styles.exerciseGif}
+                  />
+                  <Txt size={11} numberOfLines={1} style={{ marginTop: 4 }}>{item.name}</Txt>
+                </View>
+              )}
+            />
           <Spacer />
-          <Button title="Start Workout" onPress={() => plan && nav.navigate("Player", { plan })} />
+          <Button
+            title="Start Workout"
+            onPress={() => plan && nav.navigate("Player", { plan })}
+          />
         </Card>
         <Spacer />
 
