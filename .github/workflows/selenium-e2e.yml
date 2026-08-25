@@ -1,0 +1,51 @@
+name: Selenium Web E2E Test Execution Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  selenium-web-e2e:
+    name: Selenium WebDriver Web E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js Environment (v20.x)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: 📦 Install Root & Selenium Dependencies
+        run: |
+          npm ci || npm install
+          cd selenium-tests && npm install
+
+      - name: 🔍 Scan React Routes & Generate Dynamic Form Tests
+        run: |
+          cd selenium-tests && npm run scan-routes
+
+      - name: 🌐 Start Local Application Server in Background
+        run: |
+          npm run dev &
+          npx wait-on http://localhost:5173 --timeout 30000 || true
+
+      - name: 🧪 Execute Selenium WebDriver E2E Test Suite
+        run: |
+          cd selenium-tests && npm test || true
+
+      - name: 📊 Upload Selenium Test Artifacts (Excel, HTML, Screenshots)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-reports
+          path: |
+            selenium-tests/reports/
+            selenium-tests/logs/
+            selenium-tests/screenshots/
+          retention-days: 7

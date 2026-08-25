@@ -2,7 +2,7 @@
 
 # FitiFy — Home Workout Coach
 
-**Your AI-powered 24/7 personal fitness trainer, right in your browser.**
+**Your AI-powered 24/7 personal fitness trainer, right in your browser and on your mobile device.**
 
 ![Tech](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)
 ![Tech](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript)
@@ -54,6 +54,15 @@
 
 ```
 FitiFI/
+├── App/                 # React Native / Expo mobile app
+│   ├── src/
+│   │   ├── screens/         # Mobile app screens
+│   │   ├── components/      # UI components
+│   │   ├── auth/            # Auth context & logic
+│   │   ├── navigation/      # React Navigation setup
+│   │   └── theme/           # Style constants
+│   ├── App.tsx              # Root app component
+│   └── app.json             # Expo config
 ├── backend/             # Express API backend (Node + TypeScript)
 │   ├── api/
 │   │   └── index.ts         # Vercel serverless entrypoint (imports the Express app)
@@ -165,6 +174,7 @@ APP_URL="http://localhost:3000"
 | Command | Description |
 |---|---|
 | `npm run dev` | Start backend + frontend dev servers together |
+| `npm run start:app` | Start the mobile app (Expo) |
 | `npm run dev:backend` | Backend only (Express on :3000) |
 | `npm run dev:frontend` | Frontend only (Vite on :5173) |
 | `npm run build` | Build both: frontend (`frontend/dist/`) + backend (`backend/dist/server.cjs`) |

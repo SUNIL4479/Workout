@@ -88,11 +88,10 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
-        {/* Header */}
         <Row style={{ justifyContent: "space-between" }}>
           <View>
             <Txt size={24} bold>Hi, {user.name.split(" ")[0]}!</Txt>
-            <Txt dim size={13}>Let’s get to work 💪</Txt>
+            <Txt dim size={13}>Let's get to work</Txt>
           </View>
           <Pressable onPress={signOut}>
             <Card style={styles.levelBadge} outline={false}>
@@ -103,10 +102,9 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
         </Row>
         <Spacer />
 
-        {/* Metrics */}
         <Row style={{ gap: 8 }}>
           <View style={{ flex: 1 }}>
-            <MetricCard label="Streak" value={`${user.streakDays} 🔥`} sub="days in a row" />
+            <MetricCard label="Streak" value={`${user.streakDays}`} sub="days in a row" />
           </View>
           <View style={{ flex: 1 }}>
             <MetricCard label="Weight" value={`${user.weightKg} kg`} sub={user.bmiCategory || "Normal"} />
@@ -123,7 +121,6 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
         </Row>
         <Spacer />
 
-        {/* Body Focus */}
         <Card>
           <Txt bold size={16}>Body Focus</Txt>
           <Spacer h={2} />
@@ -146,7 +143,6 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
         </Card>
         <Spacer />
 
-        {/* Today's AI workout */}
         <Card>
           <Row style={{ justifyContent: "space-between" }}>
             <Txt bold size={16}>{selectedBodyFocus ? `${selectedBodyFocus} Workout` : "Today's Workout"}</Txt>
@@ -157,26 +153,26 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
           <Spacer h={4} />
           <Txt dim size={12}>{plan?.description}</Txt>
           <Spacer />
-            <FlatList
-              horizontal
-              data={[
-                ...(plan?.warmUp || []).map((ex) => ({ ...ex, _phase: "warm" })),
-                ...(plan?.mainRoutine || []).map((ex) => ({ ...ex, _phase: "main" })),
-                ...(plan?.coolDown || []).map((ex) => ({ ...ex, _phase: "cool" })),
-              ]}
-              keyExtractor={(ex) => `${ex._phase}_${ex.id}`}
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <View style={styles.exercisePreview}>
-                  <ExerciseGif
-                    exerciseName={item.name}
-                    animationType={item.animationType}
-                    style={styles.exerciseGif}
-                  />
-                  <Txt size={11} numberOfLines={1} style={{ marginTop: 4 }}>{item.name}</Txt>
-                </View>
-              )}
-            />
+          <FlatList
+            horizontal
+            data={[
+              ...(plan?.warmUp || []).map((ex) => ({ ...ex, _phase: "warm" })),
+              ...(plan?.mainRoutine || []).map((ex) => ({ ...ex, _phase: "main" })),
+              ...(plan?.coolDown || []).map((ex) => ({ ...ex, _phase: "cool" })),
+            ]}
+            keyExtractor={(ex) => `${ex._phase}_${ex.id}`}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View style={styles.exercisePreview}>
+                <ExerciseGif
+                  exerciseName={item.name}
+                  animationType={item.animationType}
+                  style={styles.exerciseGif}
+                />
+                <Txt size={11} numberOfLines={1} style={{ marginTop: 4 }}>{item.name}</Txt>
+              </View>
+            )}
+          />
           <Spacer />
           <Button
             title="Start Workout"
@@ -185,10 +181,9 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
         </Card>
         <Spacer />
 
-        {/* Daily tasks */}
         {(user.dailyTodoTasks || []).length > 0 && (
           <Card>
-            <Txt bold size={16}>Today’s Tasks</Txt>
+            <Txt bold size={16}>Today's Tasks</Txt>
             <Spacer h={6} />
             {(user.dailyTodoTasks || []).map((t) => (
               <Row key={t.id} style={{ marginVertical: 4 }}>
@@ -201,7 +196,6 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
         )}
         <Spacer />
 
-        {/* Hydration */}
         <Card>
           <Row style={{ justifyContent: "space-between" }}>
             <Txt bold size={16}>Hydration</Txt>
@@ -212,7 +206,6 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
         </Card>
         <Spacer />
 
-        {/* Quick actions */}
         <Row style={{ gap: 8 }}>
           <View style={{ flex: 1 }}>
             <Button title="Log Weight" variant="ghost" onPress={() => setWeightModal(true)} />
@@ -226,7 +219,7 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
       <Modal visible={weightModal} transparent animationType="fade" onRequestClose={() => setWeightModal(false)}>
         <View style={styles.modalOverlay}>
           <Card style={styles.modalCard}>
-            <Txt bold size={18}>Log today’s weight</Txt>
+            <Txt bold size={18}>Log today's weight</Txt>
             <Spacer />
             <Field
               label="Weight (kg)"
