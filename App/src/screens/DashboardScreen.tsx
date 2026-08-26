@@ -3,49 +3,73 @@ import {
   Alert,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-import { Button, Card, Field, Row, Spacer, Txt } from "../components/ui";
+import { Button, Card, Chip, Field, Row, Spacer, Txt } from "../components/ui";
 import { ExerciseGif } from "../components/ExerciseGif";
 import { useAuth } from "../auth/AuthContext";
 import { WorkoutService } from "../services/workoutService";
-import { getExercisesByBodyFocus, DetailedExercise } from "../services/exerciseService";
 import { colors } from "../theme";
+import { WorkoutPlan } from "../types";
 import { MainTabParamList } from "../navigation";
-import { BodyFocusCategory, WorkoutPlan } from "../types";
 
-function MetricCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+const BODY_FOCUS_OPTIONS = [
+  { key: "Full Body", label: "Full Body" },
+  { key: "Arms", label: "Arms" },
+  { key: "Chest", label: "Chest" },
+  { key: "Legs", label: "Legs" },
+  { key: "Shoulders", label: "Shoulders" },
+  { key: "Back", label: "Back" },
+];
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good Morning";
+  if (h < 17) return "Good Afternoon";
+  return "Good Evening";
+}
+
+function MetricCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
   return (
-    <Card style={styles.metricCard}>
-      <Txt dim size={11} style={{ textTransform: "uppercase" }}>{label}</Txt>
-      <Spacer h={6} />
+    <Card style={[styles.metricCard, { backgroundColor: color + "12", borderColor: color + "28" }]}>
+      <View style={[styles.metricDot, { backgroundColor: color }]} />
+      <Txt size={11} bold style={{ color, textTransform: "uppercase" }}>{label}</Txt>
+      <Spacer h={4} />
       <Txt bold size={20}>{value}</Txt>
       {sub ? <Txt dim size={11}>{sub}</Txt> : null}
     </Card>
   );
 }
 
-const BODY_FOCUS_CATEGORIES: BodyFocusCategory[] = ["Abs", "Arms", "Chest", "Legs", "Shoulders"];
-
 export default function DashboardScreen(_props: BottomTabScreenProps<MainTabParamList, "Dashboard">) {
   const { user, updateWater, updateWeight, signOut } = useAuth();
   const nav = useNavigation<NativeStackNavigationProp<any>>();
   const [weightModal, setWeightModal] = useState(false);
   const [weightInput, setWeightInput] = useState("");
+  const [selectedBodyFocus, setSelectedBodyFocus] = useState<string | null>(null);
+  const [bodyPartWorkout, setBodyPartWorkout] = useState<WorkoutPlan | null>(null);
 
-  const [activeFocusCategory, setActiveFocusCategory] = useState<BodyFocusCategory>("Abs");
-  const [selectedExercise, setSelectedExercise] = useState<DetailedExercise | null>(null);
+  const localPlan = useMemo(() => (user ? WorkoutService.generatePersonalizedWorkout(user) : null), [user]);
+  const plan = bodyPartWorkout || localPlan;
 
-  const plan = useMemo(() => (user ? WorkoutService.generatePersonalizedWorkout(user) : null), [user]);
-  const categoryExercises = useMemo(() => getExercisesByBodyFocus(activeFocusCategory), [activeFocusCategory]);
+  const handleBodyFocus = (focus: typeof BODY_FOCUS_OPTIONS[number]) => {
+    if (selectedBodyFocus === focus.key) {
+      setSelectedBodyFocus(null);
+      setBodyPartWorkout(null);
+      return;
+    }
+    setSelectedBodyFocus(focus.key);
+    if (!user) return;
+    setBodyPartWorkout(WorkoutService.generateBodyPartWorkout(user, focus.key));
+  };
 
   if (!user) return null;
 
@@ -73,56 +97,88 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
-        {/* Header */}
-        <Row style={{ justifyContent: "space-between" }}>
-          <View>
-            <Txt size={24} bold>Hi, {user.name.split(" ")[0]}!</Txt>
-            <Txt dim size={13}>Let’s get to work 💪</Txt>
+        {/* TopAppBar - Frosted Glass Greeting */}
+        <View style={styles.topAppBar}>
+          <View style={styles.topAppBarContent}>
+            <View>
+              <Txt size={13} dim>{getGreeting()}</Txt>
+              <Txt size={24} bold style={{ fontFamily: "Montserrat-Bold" }}>
+                {user.name.split(" ")[0]}, Athlete
+              </Txt>
+            </View>
+            <Pressable onPress={signOut}>
+              <View style={styles.levelBadge}>
+                <Txt size={12} bold style={{ color: colors.accent }}>LVL {user.level}</Txt>
+                <Txt size={10} dim>{user.xp} XP</Txt>
+              </View>
+            </Pressable>
           </View>
-          <Pressable onPress={signOut}>
-            <Card style={styles.levelBadge} outline={false}>
-              <Txt size={12} style={{ color: colors.accent }} bold>LVL {user.level}</Txt>
-              <Txt size={10} dim>{user.xp} XP</Txt>
-            </Card>
-          </Pressable>
-        </Row>
+        </View>
         <Spacer />
 
-        {/* Metrics */}
         <Row style={{ gap: 8 }}>
           <View style={{ flex: 1 }}>
-            <MetricCard label="Streak" value={`${user.streakDays} 🔥`} sub="days in a row" />
+            <MetricCard label="Streak" value={`${user.streakDays}`} sub="days in a row" color="#f97316" />
           </View>
           <View style={{ flex: 1 }}>
-            <MetricCard label="Weight" value={`${user.weightKg} kg`} sub={user.bmiCategory || "Normal"} />
+            <MetricCard label="Weight" value={`${user.weightKg} kg`} sub={user.bmiCategory || "Normal"} color="#0055ff" />
           </View>
         </Row>
         <Spacer h={8} />
         <Row style={{ gap: 8 }}>
           <View style={{ flex: 1 }}>
-            <MetricCard label="Water" value={`${waterPct}%`} sub={`${(user.waterIntakeMl / 1000).toFixed(2)} / ${user.waterGoalLiters || 3} L`} />
+            <MetricCard label="Water" value={`${waterPct}%`} sub={`${(user.waterIntakeMl / 1000).toFixed(2)} / ${user.waterGoalLiters || 3} L`} color="#14b8a6" />
           </View>
           <View style={{ flex: 1 }}>
-            <MetricCard label="Calories" value={`${caloriesToday}`} sub="burned today" />
+            <MetricCard label="Calories" value={`${caloriesToday}`} sub="burned today" color="#f59e0b" />
           </View>
         </Row>
         <Spacer />
 
-        {/* Today's AI workout */}
-        <Card>
-          <Row style={{ justifyContent: "space-between" }}>
-            <Txt bold size={16}>Today’s AI Workout</Txt>
-            <Txt dim size={12}>{plan?.totalMinutes} min · {plan?.estimatedCalories} cal</Txt>
+        <Card style={styles.sectionBlue}>
+          <Row style={styles.sectionHeader}>
+            <View style={[styles.sectionDot, { backgroundColor: "#0055ff" }]} />
+            <Txt bold size={16} style={{ color: "#0055ff" }}>Body Focus</Txt>
           </Row>
+          <Txt dim size={12}>Select a muscle group to target</Txt>
           <Spacer h={8} />
-          <Txt size={13}>{plan?.title}</Txt>
+          <FlatList
+            horizontal
+            data={BODY_FOCUS_OPTIONS}
+            keyExtractor={(item) => item.key}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <Chip
+                label={item.label}
+                selected={selectedBodyFocus === item.key}
+                onPress={() => handleBodyFocus(item)}
+                style={{ marginRight: 8 }}
+              />
+            )}
+          />
+        </Card>
+        <Spacer />
+
+        <Card style={styles.sectionPurple}>
+          <View style={styles.workoutHeader}>
+            <Txt bold size={16} style={{ color: "#8b5cf6" }}>
+              {selectedBodyFocus ? `${selectedBodyFocus} Workout` : "Today's Workout"}
+            </Txt>
+            <Txt dim size={12}>{plan?.totalMinutes} min · {plan?.estimatedCalories} cal</Txt>
+          </View>
+          <Spacer h={6} />
+          <Txt size={14} bold>{plan?.title}</Txt>
           <Spacer h={4} />
           <Txt dim size={12}>{plan?.description}</Txt>
           <Spacer />
           <FlatList
             horizontal
-            data={[...(plan?.warmUp || []), ...(plan?.mainRoutine || []), ...(plan?.coolDown || [])]}
-            keyExtractor={(ex) => ex.id}
+            data={[
+              ...(plan?.warmUp || []).map((ex) => ({ ...ex, _phase: "warm" })),
+              ...(plan?.mainRoutine || []).map((ex) => ({ ...ex, _phase: "main" })),
+              ...(plan?.coolDown || []).map((ex) => ({ ...ex, _phase: "cool" })),
+            ]}
+            keyExtractor={(ex) => `${ex._phase}_${ex.id}`}
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
               <View style={styles.exercisePreview}>
@@ -136,114 +192,24 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
             )}
           />
           <Spacer />
-          <Button title="Start Workout" onPress={() => plan && nav.navigate("Player", { plan })} />
-        </Card>
-        <Spacer />
-
-        {/* Body Focus Section */}
-        <Card>
-          <Row style={{ justifyContent: "space-between" }}>
-            <Txt bold size={16}>Body Focus</Txt>
-            <Txt dim size={12}>{activeFocusCategory} focus</Txt>
-          </Row>
-          <Spacer h={10} />
-
-          {/* Category Pills */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-            {BODY_FOCUS_CATEGORIES.map((cat) => {
-              const active = cat === activeFocusCategory;
-              return (
-                <TouchableOpacity
-                  key={cat}
-                  onPress={() => setActiveFocusCategory(cat)}
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    borderRadius: 20,
-                    backgroundColor: active ? colors.accent : "#1a1a1a",
-                    borderWidth: 1,
-                    borderColor: active ? colors.accent : "#333",
-                  }}
-                >
-                  <Txt bold={active} size={13} style={{ color: active ? "#000" : "#fff" }}>
-                    {cat}
-                  </Txt>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-
-          <Spacer h={12} />
-          <Txt dim size={12}>All {activeFocusCategory} Exercises ({categoryExercises.length}):</Txt>
-          <Spacer h={8} />
-
-          <FlatList
-            horizontal
-            data={categoryExercises}
-            keyExtractor={(ex) => ex.id}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.exercisePreview} onPress={() => setSelectedExercise(item)}>
-                <ExerciseGif
-                  exerciseName={item.name}
-                  animationType={item.animationType}
-                  style={styles.exerciseGif}
-                />
-                <Txt size={12} bold numberOfLines={1} style={{ marginTop: 4 }}>{item.name}</Txt>
-                <Txt dim size={10} numberOfLines={1}>
-                  {item.recommendedReps ? `${item.recommendedReps} reps` : `${item.recommendedDuration}s`}
-                </Txt>
-              </TouchableOpacity>
-            )}
-          />
-
-          <Spacer h={12} />
           <Button
-            title={`Start ${activeFocusCategory} Workout`}
-            onPress={() => {
-              const categoryPlan: WorkoutPlan = {
-                id: `${activeFocusCategory.toLowerCase()}_mobile_${Date.now()}`,
-                title: `${activeFocusCategory} Focused Workout`,
-                description: `Targeted ${activeFocusCategory} training session with all category exercises.`,
-                bodyFocus: activeFocusCategory,
-                category: "Muscle Sculpt",
-                totalMinutes: 20,
-                estimatedCalories: 180,
-                difficulty: "Intermediate",
-                safetyAdvice: "Maintain proper form throughout your routine.",
-                warmUp: [],
-                mainRoutine: categoryExercises.map((ex) => ({
-                  id: ex.id,
-                  name: ex.name,
-                  targetMuscles: ex.targetMuscles,
-                  reps: ex.recommendedReps,
-                  durationSec: ex.recommendedDuration,
-                  sets: 3,
-                  restSec: 25,
-                  calories: 20,
-                  instructions: ex.executionSteps.join(" "),
-                  safetyTips: ex.safetyNotes,
-                  formCues: ex.commonMistakes[0] ? `Avoid: ${ex.commonMistakes[0]}` : "Keep core tight",
-                  animationType: ex.animationType,
-                  difficulty: ex.difficulty,
-                })),
-                coolDown: [],
-              };
-              nav.navigate("Player", { plan: categoryPlan });
-            }}
+            title="Start Workout"
+            onPress={() => plan && nav.navigate("Player", { plan })}
           />
         </Card>
         <Spacer />
 
-        {/* Daily tasks */}
         {(user.dailyTodoTasks || []).length > 0 && (
-          <Card>
-            <Txt bold size={16}>Today’s Tasks</Txt>
-            <Spacer h={6} />
+          <Card style={styles.sectionAmber}>
+            <Row style={styles.sectionHeader}>
+              <View style={[styles.sectionDot, { backgroundColor: "#f59e0b" }]} />
+              <Txt bold size={16} style={{ color: "#f59e0b" }}>Today's Tasks</Txt>
+            </Row>
+            <Spacer h={4} />
             {(user.dailyTodoTasks || []).map((t) => (
-              <Row key={t.id} style={{ marginVertical: 4 }}>
-                <View style={[styles.dot, t.completed && { backgroundColor: colors.accent }]} />
-                <Txt size={13} style={{ flex: 1 }}>{t.title}</Txt>
+              <Row key={t.id} style={[styles.taskRow, t.completed && styles.taskRowDone]}>
+                <View style={[styles.dot, t.completed && { backgroundColor: colors.green }]} />
+                <Txt size={13} style={{ flex: 1, textDecorationLine: t.completed ? "line-through" : "none" }}>{t.title}</Txt>
                 <Txt dim size={12}>{t.timeMin} min</Txt>
               </Row>
             ))}
@@ -251,10 +217,10 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
         )}
         <Spacer />
 
-        {/* Hydration */}
-        <Card>
-          <Row style={{ justifyContent: "space-between" }}>
-            <Txt bold size={16}>Hydration</Txt>
+        <Card style={styles.sectionTeal}>
+          <Row style={styles.sectionHeader}>
+            <View style={[styles.sectionDot, { backgroundColor: "#14b8a6" }]} />
+            <Txt bold size={16} style={{ color: "#14b8a6" }}>Hydration</Txt>
             <Txt dim size={12}>{waterPct}%</Txt>
           </Row>
           <Spacer h={8} />
@@ -262,101 +228,24 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
         </Card>
         <Spacer />
 
-        {/* Quick actions */}
         <Row style={{ gap: 8 }}>
           <View style={{ flex: 1 }}>
-            <Button title="Log Weight" variant="ghost" onPress={() => setWeightModal(true)} />
+            <Pressable style={styles.actionBtnGreen} onPress={() => setWeightModal(true)}>
+              <Txt size={14} bold style={{ color: "#fff" }}>⚖️ Log Weight</Txt>
+            </Pressable>
           </View>
           <View style={{ flex: 1 }}>
-            <Button title="Ask Coach" variant="ghost" onPress={() => nav.navigate("Chat")} />
+            <Pressable style={styles.actionBtnPurple} onPress={() => nav.navigate("Chat")}>
+              <Txt size={14} bold style={{ color: "#fff" }}>💬 Ask Coach</Txt>
+            </Pressable>
           </View>
         </Row>
       </ScrollView>
 
-      <Modal visible={!!selectedExercise} transparent animationType="slide" onRequestClose={() => setSelectedExercise(null)}>
-        <View style={styles.modalOverlay}>
-          <Card style={styles.modalCard}>
-            {selectedExercise && (
-              <>
-                <Txt bold size={20}>{selectedExercise.name}</Txt>
-                <Txt dim size={12} style={{ color: colors.accent, marginTop: 2 }}>{selectedExercise.bodyFocus || activeFocusCategory} Focus</Txt>
-                <Spacer h={10} />
-
-                <ExerciseGif
-                  exerciseName={selectedExercise.name}
-                  animationType={selectedExercise.animationType}
-                  style={{ width: "100%", height: 160, borderRadius: 12, backgroundColor: "#1a1a1a" }}
-                />
-                <Spacer h={10} />
-
-                <Txt bold size={13}>Target Muscles:</Txt>
-                <Txt dim size={12}>{selectedExercise.targetMuscles}</Txt>
-                <Spacer h={6} />
-
-                <Row style={{ justifyContent: "space-between" }}>
-                  <Txt size={12}>Sets: <Txt bold size={12}>3</Txt></Txt>
-                  <Txt size={12}>Work: <Txt bold size={12}>{selectedExercise.recommendedReps ? `${selectedExercise.recommendedReps} reps` : `${selectedExercise.recommendedDuration}s`}</Txt></Txt>
-                  <Txt size={12}>Rest: <Txt bold size={12}>25s</Txt></Txt>
-                </Row>
-                <Spacer h={8} />
-
-                <Txt bold size={13}>Instructions:</Txt>
-                <Txt dim size={11}>{selectedExercise.executionSteps.join(" ")}</Txt>
-                <Spacer h={12} />
-
-                <Row style={{ gap: 8 }}>
-                  <View style={{ flex: 1 }}>
-                    <Button title="Close" variant="ghost" onPress={() => setSelectedExercise(null)} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Button
-                      title="Start Workout"
-                      onPress={() => {
-                        const ex = selectedExercise;
-                        setSelectedExercise(null);
-                        const singlePlan: WorkoutPlan = {
-                          id: `single_ex_${ex.id}_${Date.now()}`,
-                          title: `${ex.name} Workout`,
-                          description: `Targeted session for ${ex.targetMuscles}.`,
-                          bodyFocus: ex.bodyFocus || activeFocusCategory,
-                          category: "Muscle Sculpt",
-                          totalMinutes: 10,
-                          estimatedCalories: 80,
-                          difficulty: ex.difficulty,
-                          safetyAdvice: ex.safetyNotes,
-                          warmUp: [],
-                          mainRoutine: [{
-                            id: ex.id,
-                            name: ex.name,
-                            targetMuscles: ex.targetMuscles,
-                            reps: ex.recommendedReps,
-                            durationSec: ex.recommendedDuration,
-                            sets: 3,
-                            restSec: 25,
-                            calories: 20,
-                            instructions: ex.executionSteps.join(" "),
-                            safetyTips: ex.safetyNotes,
-                            formCues: ex.commonMistakes[0] ? `Avoid: ${ex.commonMistakes[0]}` : "Keep core tight",
-                            animationType: ex.animationType,
-                            difficulty: ex.difficulty,
-                          }],
-                          coolDown: [],
-                        };
-                        nav.navigate("Player", { plan: singlePlan });
-                      }}
-                    />
-                  </View>
-                </Row>
-              </>
-            )}
-          </Card>
-        </View>
-      </Modal>
-
       <Modal visible={weightModal} transparent animationType="fade" onRequestClose={() => setWeightModal(false)}>
         <View style={styles.modalOverlay}>
           <Card style={styles.modalCard}>
-            <Txt bold size={18}>Log today’s weight</Txt>
+            <Txt bold size={18}>Log today's weight</Txt>
             <Spacer />
             <Field
               label="Weight (kg)"
@@ -382,11 +271,71 @@ export default function DashboardScreen(_props: BottomTabScreenProps<MainTabPara
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  levelBadge: { padding: 10, alignItems: "center", borderRadius: 12, backgroundColor: colors.surface },
-  metricCard: { borderRadius: 14 },
+  topAppBar: {
+    backgroundColor: colors.frostedBg,
+    borderRadius: 28,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  topAppBarContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  levelBadge: {
+    padding: 10,
+    alignItems: "center",
+    borderRadius: 16,
+    backgroundColor: colors.accentLight,
+    borderWidth: 1,
+    borderColor: colors.accent + "30",
+  },
+  metricCard: { borderRadius: 14, paddingVertical: 14 },
+  metricDot: { width: 6, height: 6, borderRadius: 3, marginBottom: 6 },
+  sectionBlue: { backgroundColor: "#e6f0ff", borderColor: "#bfdbfe" },
+  sectionPurple: { backgroundColor: "#f5f3ff", borderColor: "#ddd6fe" },
+  sectionTeal: { backgroundColor: "#f0fdfa", borderColor: "#ccfbf1" },
+  sectionAmber: { backgroundColor: "#fffbeb", borderColor: "#fde68a" },
+  sectionHeader: { gap: 8 },
+  sectionDot: { width: 8, height: 8, borderRadius: 4 },
+  workoutHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  taskRow: { marginVertical: 4 },
+  taskRowDone: { opacity: 0.55 },
   exercisePreview: { width: 110, marginRight: 8 },
-  exerciseGif: { width: 110, height: 110, borderRadius: 12, backgroundColor: "#1a1a1a" },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#333" },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", padding: 24 },
+  exerciseGif: { width: 110, height: 110, borderRadius: 16, backgroundColor: colors.surface2 },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.border },
+  actionBtnGreen: {
+    backgroundColor: "#10b981",
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+    shadowColor: "#10b981",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  actionBtnPurple: {
+    backgroundColor: "#8b5cf6",
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+    shadowColor: "#8b5cf6",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.3)", justifyContent: "center", padding: 24 },
   modalCard: { padding: 20 },
 });

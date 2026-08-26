@@ -11,7 +11,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { colors, radius } from "../theme";
+import { colors, radius, font } from "../theme";
 
 // ---------- Text ----------
 
@@ -37,8 +37,8 @@ export function Txt({
       numberOfLines={numberOfLines}
       onPress={onPress}
       style={[
-        { color: dim ? colors.textDim : colors.text },
-        bold && { fontWeight: "800" },
+        { color: dim ? colors.textDim : colors.text, fontFamily: font.regular },
+        bold && { fontFamily: font.bold },
         size ? { fontSize: size } : null,
         style,
       ]}
@@ -111,9 +111,14 @@ export function Button({
     variant === "primary"
       ? colors.accent
       : variant === "danger"
-        ? "#2a1212"
-        : colors.surface;
-  const fg = variant === "primary" ? "#000" : variant === "danger" ? colors.red : colors.text;
+        ? "#fef2f2"
+        : colors.surface2;
+  const fg =
+    variant === "primary"
+      ? "#ffffff"
+      : variant === "danger"
+        ? colors.red
+        : colors.text;
   return (
     <Pressable
       onPress={onPress}
@@ -143,7 +148,7 @@ export function Field({
 }: TextInputProps & { label?: string; style?: StyleProp<TextStyle> }) {
   return (
     <View style={{ marginBottom: 12 }}>
-      {label ? <Txt dim size={12} bold style={{ marginBottom: 6, textTransform: "uppercase" }}>{label}</Txt> : null}
+      {label ? <Txt dim size={12} bold style={{ marginBottom: 6, textTransform: "uppercase", fontFamily: font.semiBold }}>{label}</Txt> : null}
       <TextInput
         placeholderTextColor={colors.textMuted}
         style={[styles.input, style]}
@@ -176,7 +181,7 @@ export function Chip({
         style,
       ]}
     >
-      <Text style={[styles.chipText, selected && { color: "#000" }]}>{label}</Text>
+      <Text style={[styles.chipText, selected && { color: "#ffffff" }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -200,11 +205,11 @@ export function ProgressBar({ value, color }: { value: number; color?: string })
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: 16,
   },
   btn: {
-    borderRadius: radius.md,
+    borderRadius: radius.xl,
     paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
@@ -212,24 +217,25 @@ const styles = StyleSheet.create({
   },
   btnText: {
     fontSize: 15,
-    fontWeight: "800",
+    fontFamily: font.semiBold,
   },
   input: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
+    borderRadius: radius.xl,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     color: colors.text,
     fontSize: 15,
+    fontFamily: font.regular,
   },
   chip: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 999,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 8,
   },
   chipSelected: {
@@ -239,16 +245,16 @@ const styles = StyleSheet.create({
   chipText: {
     color: colors.text,
     fontSize: 13,
-    fontWeight: "700",
+    fontFamily: font.semiBold,
   },
   progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#222",
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.border,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
-    borderRadius: 3,
+    borderRadius: 4,
   },
 });

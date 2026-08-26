@@ -160,7 +160,7 @@ export default function OnboardingScreen({
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, padding: 20 }}>
+    <SafeAreaView style={{ flex: 1, padding: 20, backgroundColor: colors.bg }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <Row style={{ justifyContent: "space-between" }}>
           <Txt size={22} bold>Step {Math.min(step + 1, 6)} of 6</Txt>

@@ -5,14 +5,15 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { Button, Txt, Spacer } from "../components/ui";
 import { RootStackParamList } from "../navigation";
+import { colors } from "../theme";
 
 export default function LandingScreen({ navigation }: NativeStackScreenProps<RootStackParamList, "Landing">) {
   return (
-    <LinearGradient colors={["#050505", "#0d1400"]} style={styles.container} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+    <LinearGradient colors={["#f7f9fb", "#e6f0ff"]} style={styles.container} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.hero}>
           <Image source={require("../../assets/icon.png")} style={styles.logo} resizeMode="contain" />
-          <Txt size={40} bold style={{ letterSpacing: 1 }}>FITIFY</Txt>
+          <Txt size={40} bold style={{ letterSpacing: 1, fontFamily: "Montserrat-Bold" }}>FITIFY</Txt>
           <Txt dim size={16} style={{ textAlign: "center", marginTop: 8 }}>
             Your AI-powered home workout coach.
           </Txt>
