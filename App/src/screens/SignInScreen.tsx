@@ -29,7 +29,7 @@ export default function SignInScreen({ navigation }: NativeStackScreenProps<Root
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, padding: 24 }}>
+    <SafeAreaView style={{ flex: 1, padding: 24, backgroundColor: colors.bg }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
           <Txt size={28} bold>Welcome back</Txt>

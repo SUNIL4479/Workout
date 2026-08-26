@@ -81,6 +81,12 @@ const readCookie = (req: express.Request, name: string): string | undefined => {
   return undefined;
 };
 
+const readBearerToken = (req: express.Request): string | undefined => {
+  const authorization = req.headers.authorization;
+  if (!authorization?.startsWith("Bearer ")) return undefined;
+  return authorization.slice("Bearer ".length).trim() || undefined;
+};
+
 const setSessionCookie = (res: express.Response, userId: string) => {
   const token = signToken(userId);
   const secure = process.env.NODE_ENV === "production" || process.env.RENDER === "true";
@@ -105,7 +111,7 @@ interface AuthedRequest extends express.Request {
 }
 
 app.use((req: AuthedRequest, _res, next) => {
-  req.userId = verifyToken(readCookie(req, SESSION_COOKIE));
+  req.userId = verifyToken(readBearerToken(req) || readCookie(req, SESSION_COOKIE));
   next();
 });
 
@@ -274,9 +280,10 @@ app.post("/api/auth/signup", async (req, res) => {
     newUser.profile.id = newUser._id.toString();
     await newUser.save();
 
+    const sessionToken = signToken(newUser._id.toString());
     setSessionCookie(res, newUser._id.toString());
     await recordDailyLogin(newUser);
-    res.json({ success: true, profile: newUser.profile });
+    res.json({ success: true, profile: newUser.profile, sessionToken });
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ success: false, error: "Server error during signup" });
@@ -305,9 +312,10 @@ app.post("/api/auth/signin", async (req, res) => {
       return res.status(401).json({ success: false, error: "Invalid credentials" });
     }
 
+    const sessionToken = signToken(user._id.toString());
     setSessionCookie(res, user._id.toString());
     const streak = await recordDailyLogin(user);
-    res.json({ success: true, profile: { ...user.profile, streakDays: streak } });
+    res.json({ success: true, profile: { ...user.profile, streakDays: streak }, sessionToken });
   } catch (error) {
     console.error("Signin error:", error);
     res.status(500).json({ success: false, error: "Server error during signin" });
@@ -538,6 +546,7 @@ app.post("/api/ai/generate-workout", async (req, res) => {
     const { userPrompt, profile } = req.body;
 
     const ai = await getGeminiClient();
+
     const systemPrompt = `You are FitiFy, an elite personal trainer specializing in zero-equipment home bodyweight workouts.
 Generate a structured, safe, zero-equipment workout session based on the user request and user profile.
 Take strict note of medical limitations (e.g. knee pain = no heavy jumps/squats; back pain = low impact core).

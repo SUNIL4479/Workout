@@ -1,3 +1,4 @@
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "https://workout-ced4.onrender.com/api").replace(/\/$/, "");
 
 export const apiUrl = (path: string): string =>

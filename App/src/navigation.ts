@@ -15,4 +15,5 @@ export type MainTabParamList = {
   Nutrition: undefined;
   Analytics: undefined;
   Badges: undefined;
+  Profile: undefined;
 };

@@ -109,7 +109,7 @@ export default function NutritionScreen(_props: BottomTabScreenProps<MainTabPara
             })}
 
             {plan.coachTip ? (
-              <Card style={{ borderColor: colors.accent }}>
+              <Card style={{ borderColor: colors.accent, backgroundColor: colors.accentLight }}>
                 <Txt size={13} bold style={{ color: colors.accent }}>Coach tip</Txt>
                 <Txt size={13}>{plan.coachTip}</Txt>
               </Card>
