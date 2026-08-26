@@ -1,5 +1,5 @@
 export const config = {
-  baseUrl: __ENV.BASE_URL || 'http://localhost:5000',
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
   options: {
     stages: [
       { duration: '10s', target: 50 },  // Ramp up to 50 VUs

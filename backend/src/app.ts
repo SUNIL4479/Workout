@@ -22,11 +22,21 @@ dotenv.config({ path: path.join(envSearch, ".env"), quiet: true });
 mongoose.set("bufferCommands", false);
 
 const app = express();
+
+const ALLOWED_ORIGINS = new Set<string>([
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "https://workout-frontend-smoky.vercel.app",
+]);
+if (process.env.APP_URL) ALLOWED_ORIGINS.add(process.env.APP_URL);
+
 app.use(
   cors({
-    origin: [
-      "https://workout-frontend-smoky.vercel.app",
-    ],
+    origin(origin, callback) {
+      if (!origin || ALLOWED_ORIGINS.has(origin)) return callback(null, true);
+      return callback(null, false);
+    },
     credentials: true,
   })
 );
@@ -415,11 +425,6 @@ async function getGeminiClient() {
     },
   });
 }
-
-// API Health
-app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
-});
 
 // Calculate AI Fitness Profile & Metrics
 app.post("/api/ai/fitness-profile", async (req, res) => {
