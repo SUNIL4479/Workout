@@ -187,7 +187,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       )}
 
       {/* Dedicated Body Focus Categories Section (Abs, Arms, Chest, Legs, Shoulders) */}
-      <BodyFocusSection onStartWorkout={onStartWorkout} />
+      <BodyFocusSection user={user} onStartWorkout={onStartWorkout} />
 
       {/* AI Daily Workout To-Do List Section */}
       <div className="p-6 rounded-[24px] bg-[#111111] border border-[#222222] space-y-4">

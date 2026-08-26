@@ -1,15 +1,17 @@
-import React, { useState } from "react";
-import { BodyFocusCategory, Exercise, WorkoutPlan } from "../../types";
-import { getExercisesByBodyFocusCategory, DEFAULT_WORKOUT_PLANS } from "../../data/exerciseLibrary";
+import React, { useState, useMemo } from "react";
+import { BodyFocusCategory, Exercise, UserProfile, WorkoutPlan } from "../../types";
+import { getExercisesByBodyFocusCategory } from "../../data/exerciseLibrary";
+import { WorkoutService } from "../../services/workoutService";
 import { ExerciseDetailModal } from "../workout/ExerciseDetailModal";
 import { Exercise3DVisualizer } from "../3d/Exercise3DVisualizer";
 import { Play, Dumbbell, Flame, Clock, Layers, Sparkles, ChevronRight, Info } from "lucide-react";
 
 interface BodyFocusSectionProps {
+  user: UserProfile;
   onStartWorkout: (workout: WorkoutPlan) => void;
 }
 
-export const BodyFocusSection: React.FC<BodyFocusSectionProps> = ({ onStartWorkout }) => {
+export const BodyFocusSection: React.FC<BodyFocusSectionProps> = ({ user, onStartWorkout }) => {
   const [activeCategory, setActiveCategory] = useState<BodyFocusCategory>("Abs");
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
 
@@ -24,31 +26,14 @@ export const BodyFocusSection: React.FC<BodyFocusSectionProps> = ({ onStartWorko
   // Get all exercises specifically for active category (no 6-exercise limit!)
   const categoryExercises: Exercise[] = getExercisesByBodyFocusCategory(activeCategory);
 
-  // Get primary category workout plan or generate a dynamic one
-  const categoryWorkout: WorkoutPlan = DEFAULT_WORKOUT_PLANS.find(
-    (w) => w.bodyFocus === activeCategory
-  ) || {
-    id: `${activeCategory.toLowerCase()}_focus_workout`,
-    title: `${activeCategory} Sculpt & Shred Plan`,
-    description: `Targeted routine specifically built for ${activeCategory.toLowerCase()} development.`,
-    bodyFocus: activeCategory,
-    category: "Muscle Sculpt",
-    totalMinutes: 20,
-    estimatedCalories: 180,
-    difficulty: "Intermediate",
-    safetyAdvice: `Maintain proper form during all ${activeCategory} exercises.`,
-    warmUp: [],
-    mainRoutine: categoryExercises,
-    coolDown: [],
-  };
+  // Generate deduplicated workout plan using the service
+  const categoryWorkout: WorkoutPlan = useMemo(
+    () => WorkoutService.generateBodyPartWorkout(user, activeCategory),
+    [user, activeCategory]
+  );
 
   const handleStartCategoryWorkout = () => {
-    // Ensure all category exercises are included in the workout
-    const fullPlan: WorkoutPlan = {
-      ...categoryWorkout,
-      mainRoutine: categoryExercises.length > 0 ? categoryExercises : categoryWorkout.mainRoutine,
-    };
-    onStartWorkout(fullPlan);
+    onStartWorkout(categoryWorkout);
   };
 
   return (
